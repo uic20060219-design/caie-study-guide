@@ -122,6 +122,185 @@ body {
 #back-to-top { position: fixed; bottom: 30px; right: 30px; width: 44px; height: 44px; border-radius: 50%; background: #2563eb; color: #fff; border: none; font-size: 20px; cursor: pointer; opacity: 0; transition: opacity 0.3s; z-index: 99; }
 #back-to-top.show { opacity: 1; }
 #back-to-top:hover { background: #1d4ed8; }
+
+/* ===== Annotation System ===== */
+/* Highlight colors */
+.hl-yellow { background: #fef08a; border-radius: 2px; padding: 1px 0; }
+.hl-green { background: #bbf7d0; border-radius: 2px; padding: 1px 0; }
+.hl-pink { background: #fbcfe8; border-radius: 2px; padding: 1px 0; }
+.hl-blue { background: #bfdbfe; border-radius: 2px; padding: 1px 0; }
+.hl-orange { background: #fed7aa; border-radius: 2px; padding: 1px 0; }
+.hl-purple { background: #e9d5ff; border-radius: 2px; padding: 1px 0; }
+
+/* Floating highlight toolbar */
+#highlight-toolbar {
+  position: absolute; display: none; z-index: 1000;
+  background: #1e293b; border-radius: 10px; padding: 6px 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  gap: 4px; align-items: center;
+  transform: translateX(-50%);
+}
+#highlight-toolbar.show { display: flex; }
+#highlight-toolbar .hl-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+  cursor: pointer; transition: transform 0.15s, border-color 0.15s;
+}
+#highlight-toolbar .hl-btn:hover { transform: scale(1.2); border-color: #fff; }
+#highlight-toolbar .hl-btn[data-color="yellow"] { background: #fef08a; }
+#highlight-toolbar .hl-btn[data-color="green"] { background: #bbf7d0; }
+#highlight-toolbar .hl-btn[data-color="pink"] { background: #fbcfe8; }
+#highlight-toolbar .hl-btn[data-color="blue"] { background: #bfdbfe; }
+#highlight-toolbar .hl-btn[data-color="orange"] { background: #fed7aa; }
+#highlight-toolbar .hl-btn[data-color="purple"] { background: #e9d5ff; }
+#highlight-toolbar .hl-sep { width: 1px; height: 20px; background: #475569; margin: 0 4px; }
+#highlight-toolbar .hl-action {
+  background: none; border: none; color: #e2e8f0; cursor: pointer;
+  font-size: 16px; padding: 4px 6px; border-radius: 4px; transition: background 0.15s;
+}
+#highlight-toolbar .hl-action:hover { background: #334155; }
+#highlight-toolbar .hl-action.remove-hl { color: #f87171; }
+
+/* Right annotation sidebar */
+#annotation-panel {
+  position: fixed; right: 0; top: 0; width: 320px; height: 100vh;
+  background: #fff; border-left: 1px solid var(--border);
+  box-shadow: -2px 0 12px rgba(0,0,0,0.08);
+  z-index: 98; display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform 0.3s ease;
+}
+#annotation-panel.open { transform: translateX(0); }
+#annotation-panel .panel-header {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
+}
+#annotation-panel .panel-header h3 { font-size: 16px; margin: 0; }
+#annotation-panel .panel-header .close-panel {
+  background: none; border: none; font-size: 20px; cursor: pointer; color: #6b7280;
+  padding: 4px 8px; border-radius: 4px;
+}
+#annotation-panel .panel-header .close-panel:hover { background: #f3f4f6; }
+#annotation-panel .panel-body {
+  flex: 1; overflow-y: auto; padding: 12px 16px;
+}
+#annotation-panel .panel-footer {
+  padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
+}
+#annotation-panel .panel-footer button {
+  width: 100%; padding: 8px; background: #ef4444; color: #fff; border: none;
+  border-radius: 6px; cursor: pointer; font-size: 13px;
+}
+#annotation-panel .panel-footer button:hover { background: #dc2626; }
+
+/* Annotation cards */
+.anno-card {
+  background: #f9fafb; border-radius: 8px; padding: 12px;
+  margin-bottom: 10px; border-left: 4px solid #f59e0b;
+  position: relative; cursor: pointer; transition: box-shadow 0.15s;
+}
+.anno-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.anno-card .anno-color-dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  margin-right: 6px; vertical-align: middle;
+}
+.anno-card .anno-text {
+  font-size: 13px; color: #374151; margin: 6px 0; line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.anno-card .anno-note {
+  font-size: 12px; color: #6b7280; font-style: italic; margin-top: 4px;
+  padding-top: 4px; border-top: 1px dashed #e5e7eb;
+}
+.anno-card .anno-location {
+  font-size: 11px; color: #9ca3af; margin-top: 4px;
+}
+.anno-card .anno-delete {
+  position: absolute; top: 8px; right: 8px; background: none; border: none;
+  color: #d1d5db; cursor: pointer; font-size: 14px; padding: 2px 4px;
+}
+.anno-card .anno-delete:hover { color: #ef4444; }
+.anno-empty { text-align: center; color: #9ca3af; padding: 40px 0; font-size: 14px; }
+
+/* Annotation toggle button */
+#anno-toggle-btn {
+  position: fixed; right: 20px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 80px; background: #1e293b; color: #fff;
+  border: none; border-radius: 8px 0 0 8px; cursor: pointer;
+  font-size: 12px; writing-mode: vertical-rl; z-index: 97;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#anno-toggle-btn:hover { background: #334155; }
+#anno-toggle-btn .badge {
+  position: absolute; top: -6px; right: -6px; background: #ef4444;
+  color: #fff; font-size: 11px; width: 20px; height: 20px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  writing-mode: horizontal-tb;
+}
+
+/* Note modal */
+#note-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4); z-index: 1001;
+  display: none; align-items: center; justify-content: center;
+}
+#note-modal.show { display: flex; }
+#note-modal .modal-content {
+  background: #fff; border-radius: 12px; padding: 24px; width: 90%; max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+#note-modal .modal-content h4 { margin-bottom: 12px; font-size: 16px; }
+#note-modal .modal-content textarea {
+  width: 100%; height: 100px; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px; font-size: 14px; resize: vertical; font-family: inherit;
+}
+#note-modal .modal-content textarea:focus { outline: none; border-color: #3b82f6; }
+#note-modal .modal-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+#note-modal .modal-actions button {
+  padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px;
+}
+#note-modal .modal-actions .btn-cancel { background: #f3f4f6; color: #374151; }
+#note-modal .modal-actions .btn-save { background: #2563eb; color: #fff; }
+#note-modal .modal-actions .btn-save:hover { background: #1d4ed8; }
+
+/* ===== Improved Mobile ===== */
+@media (max-width: 900px) {
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; padding: 20px 16px 60px; }
+  #sidebar-toggle { display: block; }
+  .part-section { padding: 20px; }
+  #annotation-panel { width: 100%; }
+  #anno-toggle-btn { right: 10px; width: 36px; height: 60px; font-size: 11px; }
+  .part-title { font-size: 20px; }
+  .topic-title { font-size: 18px; }
+  .study-table { font-size: 13px; }
+  .study-table th, .study-table td { padding: 6px 8px; }
+  .code-block { font-size: 12px; padding: 12px 14px; }
+  #back-to-top { bottom: 20px; right: 16px; width: 38px; height: 38px; font-size: 16px; }
+  .page-header h1 { font-size: 22px; }
+  .priority-overview { font-size: 13px; }
+  .priority-overview th, .priority-overview td { padding: 8px 10px; }
+  /* Hide annotation panel toggle on very small screens, use bottom bar instead */
+}
+@media (max-width: 480px) {
+  #main { padding: 16px 12px 60px; }
+  .part-section { padding: 16px; border-radius: 8px; }
+  .part-title { font-size: 18px; flex-direction: column; align-items: flex-start; }
+  .topic-title { font-size: 16px; }
+  .subtopic-title { font-size: 15px; }
+  .study-table { font-size: 12px; }
+  .code-block { font-size: 11px; }
+  #highlight-toolbar { padding: 4px 6px; }
+  #highlight-toolbar .hl-btn { width: 24px; height: 24px; }
+}
+/* Print: hide annotation UI */
+@media print {
+  #highlight-toolbar, #annotation-panel, #anno-toggle-btn, #note-modal { display: none !important; }
+  .hl-yellow, .hl-green, .hl-pink, .hl-blue, .hl-orange, .hl-purple {
+    background: none !important; border-bottom: 1px dashed #999;
+  }
+}
 </style>
 </head>
 <body>
@@ -2779,8 +2958,55 @@ Markdown格式的结构化报告，包含产品概况/核心功能/优劣势三�
 </section>
 
 </main>
+
+<!-- Highlight Toolbar -->
+<div id="highlight-toolbar">
+  <button class="hl-btn" data-color="yellow" title="黄色高亮"></button>
+  <button class="hl-btn" data-color="green" title="绿色高亮"></button>
+  <button class="hl-btn" data-color="pink" title="粉色高亮"></button>
+  <button class="hl-btn" data-color="blue" title="蓝色高亮"></button>
+  <button class="hl-btn" data-color="orange" title="橙色高亮"></button>
+  <button class="hl-btn" data-color="purple" title="紫色高亮"></button>
+  <span class="hl-sep"></span>
+  <button class="hl-action" id="hl-note-btn" title="添加批注"></button>
+  <button class="hl-action remove-hl" id="hl-remove-btn" title="取消高亮">✕</button>
+</div>
+
+<!-- Annotation Toggle Button -->
+<button id="anno-toggle-btn">
+  批注
+  <span class="badge" id="anno-badge" style="display:none">0</span>
+</button>
+
+<!-- Right Annotation Panel -->
+<aside id="annotation-panel">
+  <div class="panel-header">
+    <h3>📝 我的批注</h3>
+    <button class="close-panel" id="close-anno-panel"></button>
+  </div>
+  <div class="panel-body" id="anno-list">
+    <div class="anno-empty">还没有批注<br>选中文本后点击颜色即可高亮标注</div>
+  </div>
+  <div class="panel-footer">
+    <button id="clear-all-anno"> 清除所有批注</button>
+  </div>
+</aside>
+
+<!-- Note Modal -->
+<div id="note-modal">
+  <div class="modal-content">
+    <h4>添加批注笔记</h4>
+    <textarea id="note-input" placeholder="写下你的笔记、疑问或复习要点..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="note-cancel">取消</button>
+      <button class="btn-save" id="note-save">保存</button>
+    </div>
+  </div>
+</div>
+
 <button id="back-to-top">↑</button>
 <script>
+// ===== Basic UI =====
 const sidebar = document.getElementById('sidebar');
 const toggleBtn = document.getElementById('sidebar-toggle');
 toggleBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
@@ -2790,6 +3016,269 @@ document.querySelectorAll('#sidebar nav a').forEach(a => {
 const backBtn = document.getElementById('back-to-top');
 window.addEventListener('scroll', () => { backBtn.classList.toggle('show', window.scrollY > 400); });
 backBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// ===== Annotation System =====
+(function() {
+  const STORAGE_KEY = 'caie_annotations_v1';
+  let annotations = [];
+  let pendingSelection = null;
+  let pendingRange = null;
+
+  // Load from localStorage
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) annotations = JSON.parse(saved);
+  } catch(e) { annotations = []; }
+
+  function save() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(annotations)); } catch(e) {}
+  }
+
+  // DOM refs
+  const toolbar = document.getElementById('highlight-toolbar');
+  const annoPanel = document.getElementById('annotation-panel');
+  const annoList = document.getElementById('anno-list');
+  const annoBadge = document.getElementById('anno-badge');
+  const noteModal = document.getElementById('note-modal');
+  const noteInput = document.getElementById('note-input');
+
+  // Get location label for annotation
+  function getLocationLabel(range) {
+    let node = range.startContainer;
+    while (node && node.nodeType !== 1) node = node.parentNode;
+    if (!node) return '未知位置';
+    const section = node.closest('.part-section');
+    const topic = node.closest('.topic-title');
+    const subtopic = node.closest('.subtopic-title');
+    let label = '';
+    if (section) {
+      const title = section.querySelector('.part-title');
+      if (title) label = title.textContent.trim().split(' ')[0] + ' ' + title.textContent.trim().split(' ')[1];
+    }
+    if (topic) label += ' › ' + topic.textContent.trim();
+    if (subtopic) label += ' › ' + subtopic.textContent.trim();
+    return label || '正文';
+  }
+
+  // Text selection handler
+  document.addEventListener('selectionchange', () => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+      toolbar.classList.remove('show');
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    // Only allow selection within main content
+    const main = document.getElementById('main');
+    if (!main.contains(range.commonAncestorContainer)) {
+      toolbar.classList.remove('show');
+      return;
+    }
+    pendingSelection = sel.toString().trim();
+    pendingRange = range.cloneRange();
+
+    // Position toolbar
+    const rect = range.getBoundingClientRect();
+    toolbar.style.left = (rect.left + rect.width / 2) + 'px';
+    toolbar.style.top = (rect.top - 48 + window.scrollY) + 'px';
+    toolbar.classList.add('show');
+  });
+
+  // Hide toolbar when clicking elsewhere
+  document.addEventListener('mousedown', (e) => {
+    if (!toolbar.contains(e.target)) {
+      // Delay to allow selection to complete
+      setTimeout(() => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed) toolbar.classList.remove('show');
+      }, 100);
+    }
+  });
+
+  // Highlight color buttons
+  toolbar.querySelectorAll('.hl-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const color = btn.dataset.color;
+      applyHighlight(color, '');
+    });
+  });
+
+  // Note button
+  document.getElementById('hl-note-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    noteInput.value = '';
+    noteModal.classList.add('show');
+    toolbar.classList.remove('show');
+    setTimeout(() => noteInput.focus(), 100);
+  });
+
+  // Remove highlight button
+  document.getElementById('hl-remove-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (pendingRange) {
+      const text = pendingRange.toString();
+      const span = document.createElement('span');
+      span.textContent = text;
+      pendingRange.deleteContents();
+      pendingRange.insertNode(span);
+    }
+    toolbar.classList.remove('show');
+    window.getSelection().removeAllRanges();
+  });
+
+  // Apply highlight
+  function applyHighlight(color, note) {
+    if (!pendingRange) return;
+    const text = pendingSelection;
+    const location = getLocationLabel(pendingRange);
+
+    // Wrap selection in span
+    try {
+      const span = document.createElement('span');
+      span.className = 'hl-' + color;
+      span.dataset.annoId = Date.now().toString();
+      pendingRange.surroundContents(span);
+    } catch(e) {
+      // If surroundContents fails (cross-element selection), use extractContents
+      const frag = pendingRange.extractContents();
+      const span = document.createElement('span');
+      span.className = 'hl-' + color;
+      span.dataset.annoId = Date.now().toString();
+      span.appendChild(frag);
+      pendingRange.insertNode(span);
+    }
+
+    const anno = {
+      id: Date.now().toString(),
+      text: text.substring(0, 200),
+      color: color,
+      note: note,
+      location: location,
+      timestamp: new Date().toLocaleString('zh-CN')
+    };
+    annotations.push(anno);
+    save();
+    renderAnnotations();
+    toolbar.classList.remove('show');
+    window.getSelection().removeAllRanges();
+  }
+
+  // Note modal handlers
+  document.getElementById('note-cancel').addEventListener('click', () => {
+    noteModal.classList.remove('show');
+  });
+  document.getElementById('note-save').addEventListener('click', () => {
+    const note = noteInput.value.trim();
+    if (pendingRange) {
+      applyHighlight('yellow', note);
+    }
+    noteModal.classList.remove('show');
+  });
+  noteModal.addEventListener('click', (e) => {
+    if (e.target === noteModal) noteModal.classList.remove('show');
+  });
+
+  // Annotation panel toggle
+  document.getElementById('anno-toggle-btn').addEventListener('click', () => {
+    annoPanel.classList.toggle('open');
+  });
+  document.getElementById('close-anno-panel').addEventListener('click', () => {
+    annoPanel.classList.remove('open');
+  });
+
+  // Clear all annotations
+  document.getElementById('clear-all-anno').addEventListener('click', () => {
+    if (annotations.length === 0) return;
+    if (confirm('确定要清除所有批注吗？此操作不可撤销。')) {
+      // Remove all highlight spans
+      document.querySelectorAll('[data-anno-id]').forEach(el => {
+        const parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+        parent.normalize();
+      });
+      annotations = [];
+      save();
+      renderAnnotations();
+    }
+  });
+
+  // Render annotation list
+  function renderAnnotations() {
+    const count = annotations.length;
+    if (count > 0) {
+      annoBadge.style.display = 'flex';
+      annoBadge.textContent = count;
+    } else {
+      annoBadge.style.display = 'none';
+    }
+
+    if (count === 0) {
+      annoList.innerHTML = '<div class="anno-empty">还没有批注<br>选中文本后点击颜色即可高亮标注</div>';
+      return;
+    }
+
+    const colorMap = { yellow: '#fef08a', green: '#bbf7d0', pink: '#fbcfe8', blue: '#bfdbfe', orange: '#fed7aa', purple: '#e9d5ff' };
+    let html = '';
+    // Show newest first
+    for (let i = annotations.length - 1; i >= 0; i--) {
+      const a = annotations[i];
+      html += '<div class="anno-card" data-idx="' + i + '" style="border-left-color:' + (colorMap[a.color] || '#f59e0b') + '">';
+      html += '<button class="anno-delete" data-idx="' + i + '" title="删除">✕</button>';
+      html += '<span class="anno-color-dot" style="background:' + (colorMap[a.color] || '#f59e0b') + '"></span>';
+      html += '<div class="anno-text">' + escapeHtml(a.text) + '</div>';
+      if (a.note) html += '<div class="anno-note">📝 ' + escapeHtml(a.note) + '</div>';
+      html += '<div class="anno-location">' + escapeHtml(a.location) + ' · ' + a.timestamp + '</div>';
+      html += '</div>';
+    }
+    annoList.innerHTML = html;
+
+    // Click card to scroll to highlight
+    annoList.querySelectorAll('.anno-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('anno-delete')) return;
+        const idx = parseInt(card.dataset.idx);
+        const a = annotations[idx];
+        const el = document.querySelector('[data-anno-id="' + a.id + '"]');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid #2563eb';
+          el.style.outlineOffset = '2px';
+          setTimeout(() => { el.style.outline = ''; el.style.outlineOffset = ''; }, 2000);
+        }
+      });
+    });
+
+    // Delete individual annotation
+    annoList.querySelectorAll('.anno-delete').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.idx);
+        const a = annotations[idx];
+        const el = document.querySelector('[data-anno-id="' + a.id + '"]');
+        if (el) {
+          const parent = el.parentNode;
+          while (el.firstChild) parent.insertBefore(el.firstChild, el);
+          parent.removeChild(el);
+          parent.normalize();
+        }
+        annotations.splice(idx, 1);
+        save();
+        renderAnnotations();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Initial render
+  renderAnnotations();
+})();
 </script>
 </body>
 </html>
